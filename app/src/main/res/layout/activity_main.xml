@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F5F5F5"
+    android:padding="8dp">
+
+    <!-- 🔥 НОВАЯ КНОПКА: Избранное (на самом верху) -->
+    <Button
+        android:id="@+id/favoritesButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="⭐ Избранное"
+        android:textSize="16sp"
+        android:padding="12dp"
+        android:layout_marginBottom="8dp"
+        android:background="@color/purple_200"
+        android:textColor="@color/white"
+        android:stateListAnimator="@null"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <Button
+        android:id="@+id/notesButton"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="Заметки"
+        android:textSize="16sp"
+        android:padding="12dp"
+        android:layout_marginStart="4dp"
+        android:background="@color/purple_200"
+        android:textColor="@color/white"
+        android:stateListAnimator="@null"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toEndOf="@id/favoritesButton"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintWidth_percent="0.5" />
+
+    <!-- 🔍 Поиск по номеру -->
+    <LinearLayout
+        android:id="@+id/searchNumberPanel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="4dp"
+        app:layout_constraintTop_toBottomOf="@id/favoritesButton">
+
+        <EditText
+            android:id="@+id/articleNumberEditText"
+            android:layout_width="284dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@android:drawable/edit_text"
+            android:hint="Номер статьи"
+            android:inputType="number"
+            android:padding="10dp"
+            android:textSize="14sp" />
+
+        <Button
+            android:id="@+id/findArticlesButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Найти"
+            android:layout_marginStart="6dp"
+            android:textSize="14sp" />
+
+        <Button
+            android:id="@+id/cancelSearchButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="✕"
+            android:layout_marginStart="4dp"
+            android:textSize="14sp"
+            android:visibility="gone" />
+    </LinearLayout>
+
+    <!-- 🔍 Поиск по тексту -->
+    <LinearLayout
+        android:id="@+id/searchTextPanel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="4dp"
+        app:layout_constraintTop_toBottomOf="@id/searchNumberPanel">
+
+        <EditText
+            android:id="@+id/searchEditText"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:hint="Текст..."
+            android:inputType="text"
+            android:padding="10dp"
+            android:background="@android:drawable/edit_text"
+            android:textSize="14sp" />
+
+        <Button
+            android:id="@+id/searchButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Искать"
+            android:layout_marginStart="6dp"
+            android:textSize="14sp" />
+    </LinearLayout>
+
+    <!-- 🔥 Кнопка Кодексы (на всю ширину) -->
+    <Button
+        android:id="@+id/codeksButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Кодексы"
+        android:textSize="16sp"
+        android:padding="12dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="4dp"
+        android:gravity="center"
+        android:maxLines="2"
+        android:ellipsize="end"
+
+        app:layout_constraintTop_toBottomOf="@id/searchTextPanel"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        />
+
+    <!-- 🔥 Кнопка Законы (на всю ширину) -->
+    <Button
+        android:id="@+id/lawsButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Законы"
+        android:textSize="16sp"
+        android:padding="12dp"
+        android:layout_marginBottom="8dp"
+        android:gravity="center"
+        android:maxLines="2"
+        android:ellipsize="end"
+        app:layout_constraintTop_toBottomOf="@id/codeksButton"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- 🔥 Результаты поиска (занимает всё оставшееся место) -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/articlesRecyclerView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="4dp"
+        android:padding="2dp"
+        android:clipToPadding="false"
+        app:layout_constraintTop_toBottomOf="@id/lawsButton"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <Button
+        android:id="@+id/historyButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="История просмотров"
+        android:textSize="16sp"
+        android:padding="12dp"
+        android:layout_margin="8dp"
+        android:background="@color/purple_200"
+        android:textColor="@color/white"
+        android:stateListAnimator="@null"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- ❌ Скрываем старые RecyclerView, которые больше не нужны на главном экране -->
+    <!-- codeksRecyclerView, lawsRecyclerView, contentRecyclerView можно удалить или сделать gone -->
+
+</androidx.constraintlayout.widget.ConstraintLayout>

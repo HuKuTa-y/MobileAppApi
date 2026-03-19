@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  api-law-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: law-api
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./:/app:z  # ← Синхронизация файлов в реальном времени!
+    environment:
+      - PYTHONUNBUFFERED=1
+      - DATA_DIR=/app
+    user: "root"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    networks:
+      - law-network
+    # Ограничения ресурсов (опционально)
+
+networks:
+  law-network:
+    driver: bridge
