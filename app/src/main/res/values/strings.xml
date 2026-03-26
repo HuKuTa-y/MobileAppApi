@@ -1,4 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Законы РФ</string>
+    <string name="about">ℹ️ О приложении</string>
+    <string name="history">История просмотров</string>
+    <string name="laws">Законы</string>
+    <string name="codeks">Кодексы</string>
+    <string name="search">Искать</string>
+    <string name="text">Текст...</string>
+    <string name="x">✕</string>
+    <string name="look">Найти</string>
+    <string name="number">Номер статьи</string>
+    <string name="nodes">Заметки</string>
+    <string name="favourites">⭐ Избранное</string>
+    <string name="off">Оффлайн</string>
+    <string name="offline">📴 Офлайн-режим. Некоторые функции недоступны.</string>
+    <string name="bash">📴 Офлайн-режим. Некоторые функции недоступны.</string>
 </resources>

@@ -35,11 +35,14 @@ public class CodekAdapter extends RecyclerView.Adapter<CodekAdapter.ViewHolder> 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Codek codek = codeks.get(position);
-        if (codek != null && codek.название != null) {
+
+        // 🔥 ДОБАВЛЕНО: Защита от null
+        if (codek != null && codek.название != null && !codek.название.isEmpty()) {
             holder.button.setText(codek.название);
         } else {
             holder.button.setText("Без названия");
         }
+
         holder.button.setOnClickListener(v -> {
             if (listener != null && codek != null) {
                 listener.onCodekClick(codek);

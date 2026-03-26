@@ -21,8 +21,19 @@
         android:layout_height="wrap_content"
         android:padding="16dp"
         android:textSize="20sp"
+        android:src="@android:drawable/ic_menu_share"
         android:textStyle="bold"
         android:textColor="?android:attr/textColorPrimary" />
+
+    <ImageButton
+        android:id="@+id/copyCitationButton"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:src="@android:drawable/ic_menu_share"
+        android:contentDescription="Копировать ссылку"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:padding="12dp"
+        android:layout_marginStart="8dp" />
 
     <!-- Разделитель -->
     <View

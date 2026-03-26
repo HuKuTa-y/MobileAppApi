@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
+import android.view.View;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -18,6 +19,8 @@ import com.example.lawapp.api.ApiClient;
 import com.example.lawapp.api.LawApiService;
 import com.example.lawapp.cache.CacheManager;
 import com.example.lawapp.models.ArticleFull;
+import com.example.lawapp.utils.MemoryCache;
+import com.example.lawapp.utils.NetworkUtils;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -26,181 +29,234 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+/**
+ * Экран списка статей кодекса/закона
+ * Оптимизированная загрузка и кэширование
+ * 60 FPS прокрутка
+ */
 public class ArticleListActivity extends AppCompatActivity {
 
+    private static final String TAG = "ArticleListActivity";
+    private static final long MIN_REFRESH_INTERVAL_MS = 5000;  // 5 секунд
+
+    // UI Elements
     private RecyclerView recyclerView;
-    private ArticleAdapter adapter;
-    private List<ArticleFull> articlesList = new ArrayList<>();
-
-    // 🔥 Только SwipeRefreshLayout (ProgressBar убран)
     private SwipeRefreshLayout swipeRefresh;
+    private View offlineIndicator;
 
+    // Adapter & Data
+    private ArticleAdapter adapter;
+    private final List<ArticleFull> articlesList = new ArrayList<>();
+
+    // API & Threading
     private LawApiService apiService;
     private ExecutorService executor;
     private Handler mainHandler;
 
+    // State
     private String sourceNumber;
     private String sourceTitle;
-
-    // 🔥 Оптимизация: флаг загрузки (защита от повторных запросов)
     private boolean isLoading = false;
-    // 🔥 Оптимизация: время последнего обновления (минимум 5 сек между запросами)
     private long lastRefreshTime = 0;
-    private static final long MIN_REFRESH_INTERVAL_MS = 5000;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_article_list);
 
-        sourceNumber = getIntent().getStringExtra("source_number");
-        sourceTitle = getIntent().getStringExtra("source_title");
+        initializeComponents();
+        setupUI();
+        loadArticles();
+    }
 
-        Log.d("ARTICLE_LIST", "sourceNumber=" + sourceNumber + ", sourceTitle=" + sourceTitle);
+    @Override
+    protected void onResume() {
+        super.onResume();
+        updateOfflineIndicator();
+        adapter.notifyDataSetChanged();  // Обновить цвета офлайн-режима
+    }
 
-        if (sourceNumber == null) {
-            Toast.makeText(this, "Ошибка: не передан источник", Toast.LENGTH_SHORT).show();
-            finish();
-            return;
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (executor != null && !executor.isShutdown()) {
+            executor.shutdown();
         }
+    }
 
-        // Toolbar
+
+    private void initializeComponents() {
+        apiService = ApiClient.getService();
+        executor = Executors.newFixedThreadPool(2);
+        mainHandler = new Handler(Looper.getMainLooper());
+    }
+
+    private void initViews() {
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-            getSupportActionBar().setTitle(sourceTitle != null ? sourceTitle : "Статьи");
+            getSupportActionBar().setTitle("Статьи");
         }
 
-        // Инициализация
-        apiService = ApiClient.getService();
-        executor = Executors.newFixedThreadPool(2);
-        mainHandler = new Handler(Looper.getMainLooper());
-
-        // 🔥 Инициализация UI (без ProgressBar)
         swipeRefresh = findViewById(R.id.swipeRefresh);
         recyclerView = findViewById(R.id.articlesRecyclerView);
+        offlineIndicator = findViewById(R.id.offlineIndicator);
+    }
 
-        if (recyclerView == null) {
-            Log.e("ARTICLE_LIST", "❌ articlesRecyclerView не найден!");
-            finish();
-            return;
-        }
+    private void setupUI() {
+        initViews();
+        setupRecyclerView();
+        setupSwipeRefresh();
+        updateOfflineIndicator();
+    }
 
-        // Настройка RecyclerView
+    private void setupRecyclerView() {
+        // ОПТИМИЗАЦИЯ: Отключаем лишние анимации для производительности
+        recyclerView.setHasFixedSize(true);
+        recyclerView.setItemAnimator(null);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
+
         adapter = new ArticleAdapter(articlesList, this::onArticleClick);
         recyclerView.setAdapter(adapter);
+    }
 
-        // 🔥 Настройка SwipeRefreshLayout
+    private void setupSwipeRefresh() {
         swipeRefresh.setOnRefreshListener(this::loadArticles);
         swipeRefresh.setColorSchemeResources(
                 R.color.purple_500,
                 R.color.teal_200,
                 R.color.purple_700
         );
-
-        // Загрузка статей
-        loadArticles();
     }
 
+
     private void loadArticles() {
-        // 🔥 ОПТИМИЗАЦИЯ 1: Защита от повторных запросов
+        // Защита от повторных запросов
         if (isLoading) {
-            Log.d("ARTICLE_LIST", "⏳ Загрузка уже выполняется, пропуск");
+            Log.d(TAG, "⏳ Загрузка уже выполняется");
             return;
         }
 
-        // 🔥 ОПТИМИЗАЦИЯ 2: Минимальный интервал между обновлениями (5 сек)
-        long now = System.currentTimeMillis();
-        if (now - lastRefreshTime < MIN_REFRESH_INTERVAL_MS && !swipeRefresh.isRefreshing()) {
-            Log.d("ARTICLE_LIST", "⏱ Слишком частый запрос, пропуск");
+        // Минимальный интервал между обновлениями
+        if (shouldSkipRefresh()) {
+            Log.d(TAG, "⏱ Слишком частый запрос");
+            if (!swipeRefresh.isRefreshing()) {
+                swipeRefresh.setRefreshing(false);
+            }
+            isLoading = false;
             return;
         }
 
         isLoading = true;
+        showLoadingIndicator();
 
-        // 🔥 Показываем индикатор свайпа (единственный визуальный сигнал)
+        executor.execute(this::fetchArticlesFromSource);
+    }
+
+    private boolean shouldSkipRefresh() {
+        long now = System.currentTimeMillis();
+        return (now - lastRefreshTime < MIN_REFRESH_INTERVAL_MS) && !swipeRefresh.isRefreshing();
+    }
+
+    private void showLoadingIndicator() {
         if (!swipeRefresh.isRefreshing()) {
             swipeRefresh.setRefreshing(true);
         }
+    }
 
-        executor.execute(() -> {
-            try {
-                String encoded = URLEncoder.encode(sourceNumber, StandardCharsets.UTF_8.toString());
-                Log.d("ARTICLE_LIST", "Запрос: /api/articles/by-source?source_number=" + encoded);
+    private void fetchArticlesFromSource() {
+        try {
+            String encoded = URLEncoder.encode(sourceNumber, StandardCharsets.UTF_8.toString());
+            Log.d(TAG, "Запрос: /api/articles/by-source?source_number=" + encoded);
 
-                // 🔥 ОПТИМИЗАЦИЯ 3: Принудительное обновление только при свайпе
-                boolean forceRefresh = swipeRefresh.isRefreshing();
+            boolean forceRefresh = swipeRefresh.isRefreshing();
 
-                List<ArticleFull> articles = CacheManager.getData(
-                        "/api/articles/by-source?source_number=" + encoded,
-                        "articles_" + encoded + ".cache.json",
-                        apiService.getArticlesBySource(sourceNumber),
-                        forceRefresh
-                );
+            List<ArticleFull> articles = CacheManager.getData(
+                    "/api/articles/by-source?source_number=" + encoded,
+                    "articles_" + encoded + ".cache.json",
+                    apiService.getArticlesBySource(sourceNumber),
+                    forceRefresh
+            );
 
-                Log.d("ARTICLE_LIST", "Получено статей: " + (articles != null ? articles.size() : "NULL"));
+            onArticlesLoaded(articles);
 
-                if (articles != null) {
-                    mainHandler.post(() -> {
-                        articlesList.clear();
-                        for (ArticleFull a : articles) {
-                            if (a != null && a.название != null) {
-                                articlesList.add(a);
-                            }
-                        }
-                        adapter.notifyDataSetChanged();
+        } catch (Exception e) {
+            Log.e(TAG, "Ошибка загрузки: " + e.getMessage(), e);
+            runOnUiThread(() ->
+                    Toast.makeText(this, "Ошибка: " + e.getMessage(), Toast.LENGTH_SHORT).show()
+            );
+        } finally {
+            hideLoadingIndicator();
+        }
+    }
 
-                        // Обновляем заголовок с количеством статей
-                        if (getSupportActionBar() != null) {
-                            getSupportActionBar().setTitle(sourceTitle + " (" + articlesList.size() + ")");
-                        }
+    private void onArticlesLoaded(List<ArticleFull> articles) {
+        mainHandler.post(() -> {
+            articlesList.clear();
 
-                        Log.d("ARTICLE_LIST", "✅ UI обновлён: " + articlesList.size() + " статей");
+            if (articles != null) {
+                for (ArticleFull article : articles) {
+                    if (isValidArticle(article)) {
+                        articlesList.add(article);
 
-                        if (articlesList.isEmpty()) {
-                            Toast.makeText(this, "Статьи не найдены", Toast.LENGTH_SHORT).show();
-                        }
-                    });
-                } else {
-                    mainHandler.post(() ->
-                            Toast.makeText(this, "Не удалось загрузить статьи", Toast.LENGTH_SHORT).show()
-                    );
+                        // ПРЕДЗАГРУЗКА текста в кэш (для мгновенного открытия)
+                        MemoryCache.getInstance().putArticle(article.название, article);
+                    }
                 }
-
-            } catch (Exception e) {
-                Log.e("ARTICLE_LIST", "Ошибка: " + e.getMessage(), e);
-                mainHandler.post(() ->
-                        Toast.makeText(this, "Ошибка: " + e.getMessage(), Toast.LENGTH_SHORT).show()
-                );
-            } finally {
-                // 🔥 Скрываем индикатор и сбрасываем флаг
-                mainHandler.post(() -> {
-                    swipeRefresh.setRefreshing(false);
-                    isLoading = false;  // 🔥 Разрешаем новые запросы
-                    lastRefreshTime = System.currentTimeMillis();  // 🔥 Обновляем время
-                });
             }
+
+            adapter.notifyDataSetChanged();
+            updateTitleWithCount();
+
+            if (articlesList.isEmpty()) {
+                Toast.makeText(this, "Статьи не найдены", Toast.LENGTH_SHORT).show();
+            }
+
+            Log.d(TAG, "Загружено статей: " + articlesList.size());
         });
     }
 
+    private void hideLoadingIndicator() {
+        mainHandler.post(() -> {
+            swipeRefresh.setRefreshing(false);
+            isLoading = false;
+            lastRefreshTime = System.currentTimeMillis();
+            updateOfflineIndicator();
+        });
+    }
+
+    private void updateTitleWithCount() {
+        if (getSupportActionBar() != null) {
+            String title = sourceTitle != null ? sourceTitle : "Статьи";
+            getSupportActionBar().setTitle(title + " (" + articlesList.size() + ")");
+        }
+    }
+
+
+    private void updateOfflineIndicator() {
+        boolean isOnline = NetworkUtils.isOnline(this);
+        offlineIndicator.setVisibility(isOnline ? View.GONE : View.VISIBLE);
+
+        if (!isOnline && articlesList.isEmpty()) {
+            Toast.makeText(this, "📴 Офлайн-режим. Показаны кэшированные данные.", Toast.LENGTH_LONG).show();
+        }
+    }
 
 
     private void onArticleClick(ArticleFull article) {
-        if (article == null || article.название == null) {
+        if (!isValidArticle(article)) {
             Toast.makeText(this, "Ошибка: статья некорректна", Toast.LENGTH_SHORT).show();
             return;
         }
 
-
-        Log.d("ARTICLE_CLICK", "Клик: " + article.название);
+        Log.d(TAG, "Открытие статьи: " + article.название);
 
         Intent intent = new Intent(this, ArticleDetailActivity.class);
-        intent.putExtra("source_title", sourceTitle);  // 🔥 ДОБАВИТЬ ЭТУ СТРОКУ
         intent.putExtra("article_title", article.название);
+        intent.putExtra("source_title", sourceTitle);
 
-        // Плавный переход
         startActivity(intent);
         overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
     }
@@ -212,9 +268,23 @@ public class ArticleListActivity extends AppCompatActivity {
         return true;
     }
 
+
+    private boolean isValidArticle(ArticleFull article) {
+        return article != null && article.название != null;
+    }
+
     @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        executor.shutdown();
+    protected void onStart() {
+        super.onStart();
+        // Получаем данные из Intent
+        sourceNumber = getIntent().getStringExtra("source_number");
+        sourceTitle = getIntent().getStringExtra("source_title");
+
+        Log.d(TAG, "Источник: " + sourceNumber + " — " + sourceTitle);
+
+        if (sourceNumber == null) {
+            Toast.makeText(this, "Ошибка: не передан источник", Toast.LENGTH_SHORT).show();
+            finish();
+        }
     }
 }

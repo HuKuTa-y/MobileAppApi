@@ -1,6 +1,14 @@
 package com.example.lawapp;
 
 import android.content.res.ColorStateList;
+import android.content.ClipData;
+import android.content.ClipboardManager;
+import android.content.Context;
+import android.os.Build;
+import android.os.VibrationEffect;
+import android.os.Vibrator;
+import android.widget.ImageButton;
+import android.widget.Toast;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
@@ -36,6 +44,7 @@ public class ArticleDetailActivity extends AppCompatActivity {
     private String sourceTitle;
     private Handler mainHandler;
     private HistoryManager historyManager;
+    private ImageButton copyCitationButton;
     private Button favoriteButton, noteButton;
     private NotesManager notesManager;
     private FavoritesManager favoritesManager;
@@ -58,6 +67,8 @@ public class ArticleDetailActivity extends AppCompatActivity {
         // Инициализация View
         textViewTitle = findViewById(R.id.textViewTitle);
         textViewContent = findViewById(R.id.textViewContent);
+        copyCitationButton = findViewById(R.id.copyCitationButton);
+        copyCitationButton.setOnClickListener(v -> copyArticleCitation());
         favoriteButton = findViewById(R.id.favoriteButton);
 
         // Инициализация логики
@@ -208,6 +219,28 @@ public class ArticleDetailActivity extends AppCompatActivity {
                 });
             }
         });
+    }
+
+    private void copyArticleCitation() {
+        if (currentArticleTitle == null) return;
+
+        // Формируем текст для копирования
+        String citation = "📜 " + currentArticleTitle +
+                (sourceTitle != null ? " (" + sourceTitle + ")" : "");
+
+        // Копируем в буфер обмена
+        ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+        ClipData clip = ClipData.newPlainText("article_citation", citation);
+        clipboard.setPrimaryClip(clip);
+
+        // Показываем уведомление
+        Toast.makeText(this, "📋 Скопировано: " + citation, Toast.LENGTH_LONG).show();
+
+        // 🔥 Вибрация для тактильной отдачи (опционально)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            Vibrator vibrator = (Vibrator) getSystemService(Vibrator.class);
+            vibrator.vibrate(VibrationEffect.createOneShot(50, VibrationEffect.DEFAULT_AMPLITUDE));
+        }
     }
 
     @Override

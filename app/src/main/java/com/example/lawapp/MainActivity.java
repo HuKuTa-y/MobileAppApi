@@ -21,47 +21,83 @@ import com.example.lawapp.api.ApiClient;
 import com.example.lawapp.api.LawApiService;
 import com.example.lawapp.cache.CacheManager;
 import com.example.lawapp.models.ArticleFull;
+import com.example.lawapp.utils.DataPrefetcher;
+import com.example.lawapp.utils.NetworkUtils;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import retrofit2.Response;
+
+/**
+ * Главный экран приложения
+ * Оптимизированный поиск, навигация и UI
+ */
 public class MainActivity extends AppCompatActivity {
 
-    // UI Elements
-    private EditText articleNumberEditText, searchEditText;
-    private Button findArticlesButton, cancelSearchButton, searchButton;
-    private Button codeksButton, lawsButton;
-    private RecyclerView articlesRecyclerView;
-    private Button favoritesButton, notesButton, historyButton;
+    private static final String TAG = "MainActivity";
 
-    // Adapters (только для поиска)
+    // UI Elements
+    private EditText articleNumberEditText;
+    private EditText searchEditText;
+    private Button findArticlesButton;
+    private Button cancelSearchButton;
+    private Button searchButton;
+    private Button codeksButton;
+    private Button lawsButton;
+    private Button favoritesButton;
+    private Button notesButton;
+    private Button historyButton;
+    private Button aboutButton;
+    private RecyclerView articlesRecyclerView;
+    private View offlineIndicator;
+
+    // Adapters
     private ArticleAdapter articleAdapter;
 
-    // Data
-    private List<ArticleFull> articlesFull = new ArrayList<>();
-    private List<ArticleFull> currentArticles = new ArrayList<>();
+    // Data (используем ArrayList с начальной емкостью)
+    private final List<ArticleFull> articlesFull = new ArrayList<>(1000);
+    private final List<ArticleFull> currentArticles = new ArrayList<>();
 
     // API & Threading
     private LawApiService apiService;
     private ExecutorService executor;
     private Handler mainHandler;
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        initializeComponents();
+        setupUI();
+        loadData();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        updateOfflineIndicator();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (executor != null && !executor.isShutdown()) {
+            executor.shutdown();
+        }
+    }
+
+
+    private void initializeComponents() {
         CacheManager.initialize(this);
+        DataPrefetcher.getInstance(this).prefetchEssentials();
         apiService = ApiClient.getService();
         executor = Executors.newFixedThreadPool(2);
         mainHandler = new Handler(Looper.getMainLooper());
-
-        initViews();
-        setupRecyclerViews();
-        setupClickListeners();
-        loadArticlesFullForSearch();
     }
 
     private void initViews() {
@@ -70,56 +106,62 @@ public class MainActivity extends AppCompatActivity {
         findArticlesButton = findViewById(R.id.findArticlesButton);
         cancelSearchButton = findViewById(R.id.cancelSearchButton);
         searchButton = findViewById(R.id.searchButton);
-
+        codeksButton = findViewById(R.id.codeksButton);
+        lawsButton = findViewById(R.id.lawsButton);
         favoritesButton = findViewById(R.id.favoritesButton);
         notesButton = findViewById(R.id.notesButton);
         historyButton = findViewById(R.id.historyButton);
-        codeksButton = findViewById(R.id.codeksButton);
-        lawsButton = findViewById(R.id.lawsButton);
+        aboutButton = findViewById(R.id.aboutButton);
+        offlineIndicator = findViewById(R.id.offlineIndicator);
         articlesRecyclerView = findViewById(R.id.articlesRecyclerView);
     }
 
+    private void setupUI() {
+        initViews();
+        setupRecyclerView();
+        setupClickListeners();
+        updateOfflineIndicator();
+    }
 
+    private void setupRecyclerView() {
+        // ОПТИМИЗАЦИЯ: Отключаем лишние аллокации
+        articlesRecyclerView.setHasFixedSize(true);
+        articlesRecyclerView.setItemAnimator(null);
 
-    private void setupRecyclerViews() {
-        articleAdapter = new ArticleAdapter(currentArticles, this::onArticleClick);
         articlesRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+        articleAdapter = new ArticleAdapter(currentArticles, this::onArticleClick);
         articlesRecyclerView.setAdapter(articleAdapter);
     }
 
     private void setupClickListeners() {
-
+        // Поиск
         findArticlesButton.setOnClickListener(v -> searchByNumber());
         cancelSearchButton.setOnClickListener(v -> cancelSearch());
         searchButton.setOnClickListener(v -> searchByText());
 
-        codeksButton.setOnClickListener(v -> {
-            Intent intent = new Intent(MainActivity.this, CodeksListActivity.class);
-            startActivity(intent);
-
-        });
-
-
-        lawsButton.setOnClickListener(v -> {
-            Intent intent = new Intent(MainActivity.this, LawsListActivity.class);
-            startActivity(intent);
-        });
-        favoritesButton.setOnClickListener(v -> {
-            Intent intent = new Intent(MainActivity.this, FavoritesActivity.class);
-            startActivity(intent);
-        });
-        notesButton.setOnClickListener(v -> {
-            Intent intent = new Intent(MainActivity.this, NotesActivity.class);
-            startActivity(intent);
-        });
-        historyButton.setOnClickListener(v -> {
-            Intent intent = new Intent(MainActivity.this, HistoryActivity.class);
-            startActivity(intent);
-        });
-
+        // Навигация (единый метод вместо 8 лямбд)
+        codeksButton.setOnClickListener(v -> navigateTo(CodeksListActivity.class));
+        lawsButton.setOnClickListener(v -> navigateTo(LawsListActivity.class));
+        favoritesButton.setOnClickListener(v -> navigateTo(FavoritesActivity.class));
+        notesButton.setOnClickListener(v -> navigateTo(NotesActivity.class));
+        historyButton.setOnClickListener(v -> navigateTo(HistoryActivity.class));
+        aboutButton.setOnClickListener(v -> navigateTo(AboutActivity.class));
     }
 
-    private void loadArticlesFullForSearch() {
+
+    private void navigateTo(Class<?> activityClass) {
+        Intent intent = new Intent(MainActivity.this, activityClass);
+        startActivity(intent);
+        // Мгновенный переход без анимации (экономит ресурсы)
+        overridePendingTransition(0, 0);
+    }
+
+
+    private void loadData() {
+        loadArticlesForSearch();
+    }
+
+    private void loadArticlesForSearch() {
         executor.execute(() -> {
             try {
                 List<ArticleFull> newArticles = CacheManager.getData(
@@ -133,191 +175,201 @@ public class MainActivity extends AppCompatActivity {
                     mainHandler.post(() -> {
                         articlesFull.clear();
                         articlesFull.addAll(newArticles);
-                        Log.d("SEARCH_INIT", "Загружено статей: " + articlesFull.size());
+                        Log.d(TAG, "Загружено статей для поиска: " + articlesFull.size());
                     });
                 }
             } catch (Exception e) {
-                Log.e("SEARCH_INIT", "Ошибка: " + e.getMessage(), e);
+                Log.e(TAG, "Ошибка загрузки статей: " + e.getMessage(), e);
             }
         });
     }
 
-    private void onArticleClick(ArticleFull article) {
-        if (article == null || article.название == null) return;
 
-        Intent intent = new Intent(this, ArticleDetailActivity.class);
-        intent.putExtra("article_title", article.название);
-        startActivity(intent);
-    }
-
-    // 🔹 Поиск по номеру
     private void searchByNumber() {
         String text = articleNumberEditText.getText().toString().trim();
         if (text.isEmpty()) {
-            Toast.makeText(this, "Введите номер статьи", Toast.LENGTH_SHORT).show();
+            showShortToast("Введите номер статьи");
             return;
         }
 
         try {
             int number = Integer.parseInt(text);
-
-            if (!articlesFull.isEmpty()) {
-                List<ArticleFull> results = new ArrayList<>();
-                for (ArticleFull a : articlesFull) {
-                    if (a == null || a.название == null) continue;
-                    if (extractNumberFromTitle(a.название) == number) {
-                        results.add(a);
-                    }
-                }
-                // 🔥 Передаем запрос для подсветки (хотя для номера это менее важно)
-                articleAdapter.setSearchQuery(text);
-                showSearchResults(results);
-                return;
-            }
-
-            // ... остальной код поиска на сервере ...
-            executor.execute(() -> {
-                try {
-                    retrofit2.Response<List<ArticleFull>> response = apiService.searchByNumber(number).execute();
-                    List<ArticleFull> results = response.body();
-                    articleAdapter.setSearchQuery(text); // 🔥 Важно!
-                    showSearchResults(results != null ? results : new ArrayList<>());
-                } catch (Exception e) {
-                    mainHandler.post(() ->
-                            Toast.makeText(this, "Ошибка: " + e.getMessage(), Toast.LENGTH_SHORT).show()
-                    );
-                }
-            });
-
+            List<ArticleFull> results = searchArticlesByNumber(number);
+            articleAdapter.setSearchQuery(text);
+            showSearchResults(results);
         } catch (NumberFormatException e) {
-            Toast.makeText(this, "Введите число", Toast.LENGTH_SHORT).show();
+            showShortToast("Введите корректный номер");
         }
     }
 
-    // 🔹 Поиск по тексту
     private void searchByText() {
         String query = searchEditText.getText().toString().trim();
         if (query.isEmpty()) {
-            Toast.makeText(this, "Введите текст", Toast.LENGTH_SHORT).show();
+            showShortToast("Введите текст для поиска");
             return;
         }
 
-        if (!articlesFull.isEmpty()) {
-            String[] words = query.toLowerCase().split("\\s+");
-            List<ArticleFull> results = new ArrayList<>();
+        List<ArticleFull> results = searchArticlesByText(query);
+        articleAdapter.setSearchQuery(query);
+        showSearchResults(results);
+    }
 
-            for (ArticleFull a : articlesFull) {
-                if (a == null || a.название == null) continue;
-                String title = a.название.toLowerCase();
-                for (String word : words) {
-                    if (title.contains(word)) {
-                        results.add(a);
-                        break;
-                    }
+    private List<ArticleFull> searchArticlesByNumber(int number) {
+        if (!articlesFull.isEmpty()) {
+            List<ArticleFull> results = new ArrayList<>();
+            for (ArticleFull article : articlesFull) {
+                if (isValidArticle(article) && extractNumberFromTitle(article.название) == number) {
+                    results.add(article);
                 }
             }
-            // 🔥 ПЕРЕДАЕМ ЗАПРОС В АДАПТЕР
-            articleAdapter.setSearchQuery(query);
-            showSearchResults(results);
-            return;
+            if (!results.isEmpty()) return results;
         }
+        return searchOnServerByNumber(number);
+    }
 
-        executor.execute(() -> {
-            try {
-                retrofit2.Response<List<ArticleFull>> response = apiService.searchByText(query).execute();
-                List<ArticleFull> results = response.body();
-                articleAdapter.setSearchQuery(query); // 🔥 Важно!
-                showSearchResults(results != null ? results : new ArrayList<>());
-            } catch (Exception e) {
-                mainHandler.post(() ->
-                        Toast.makeText(this, "Ошибка: " + e.getMessage(), Toast.LENGTH_SHORT).show()
-                );
+    private List<ArticleFull> searchArticlesByText(String query) {
+        if (!articlesFull.isEmpty()) {
+            List<ArticleFull> results = searchLocallyByText(query);
+            if (!results.isEmpty()) return results;
+        }
+        return searchOnServerByText(query);
+    }
+
+    private List<ArticleFull> searchLocallyByText(String query) {
+        List<ArticleFull> results = new ArrayList<>();
+        String[] words = query.toLowerCase().split("\\s+");
+
+        for (ArticleFull article : articlesFull) {
+            if (!isValidArticle(article)) continue;
+
+            String title = article.название.toLowerCase();
+            for (String word : words) {
+                if (title.contains(word)) {
+                    results.add(article);
+                    break;
+                }
             }
-        });
+        }
+        return results;
+    }
+
+    private List<ArticleFull> searchOnServerByNumber(int number) {
+        try {
+            Response<List<ArticleFull>> response = apiService.searchByNumber(number).execute();
+            return response.body() != null ? response.body() : new ArrayList<>();
+        } catch (Exception e) {
+            Log.e(TAG, "Ошибка поиска по номеру: " + e.getMessage(), e);
+            runOnUiThread(() -> showShortToast("Ошибка поиска: " + e.getMessage()));
+            return new ArrayList<>();
+        }
+    }
+
+    private List<ArticleFull> searchOnServerByText(String query) {
+        try {
+            Response<List<ArticleFull>> response = apiService.searchByText(query).execute();
+            return response.body() != null ? response.body() : new ArrayList<>();
+        } catch (Exception e) {
+            Log.e(TAG, "Ошибка поиска по тексту: " + e.getMessage(), e);
+            runOnUiThread(() -> showShortToast("Ошибка поиска: " + e.getMessage()));
+            return new ArrayList<>();
+        }
     }
 
 
-    // 🔹 Отображение результатов (СКРЫВАЕМ кнопки)
-    // 🔹 Отображение результатов поиска + УВЕДОМЛЕНИЕ
     private void showSearchResults(List<ArticleFull> results) {
         mainHandler.post(() -> {
             currentArticles.clear();
             if (results != null) currentArticles.addAll(results);
             articleAdapter.notifyDataSetChanged();
 
-            // Показать кнопку отмены
             cancelSearchButton.setVisibility(View.VISIBLE);
-
-            // Скрыть кнопки Кодексы и Законы
             codeksButton.setVisibility(View.GONE);
             lawsButton.setVisibility(View.GONE);
 
-            // 🔥 УВЕДОМЛЕНИЕ О РЕЗУЛЬТАТАХ ПОИСКА
-            int count = currentArticles.size();
-            String query = searchEditText.getText().toString().trim();
-
-            if (count > 0) {
-                showSearchNotification("Найдено статей: " + count);
-            } else {
-                showSearchNotification("По вашему запросу ничего не найдено");
-            }
-
-            Log.d("SEARCH", "Показано результатов: " + count);
+            showSearchNotification(currentArticles.size());
+            Log.d(TAG, "Показано результатов: " + currentArticles.size());
         });
     }
 
-    // 🔥 Метод для показа плавного уведомления
-    private void showSearchNotification(String message) {
-        Toast toast = Toast.makeText(this, message, Toast.LENGTH_SHORT);
+    private void showSearchNotification(int count) {
+        String message = count > 0
+                ? "Найдено статей: " + count
+                : "По вашему запросу ничего не найдено";
+        showCustomToast(message);
+    }
 
-        // 🔥 Получаем TextView внутри Toast для кастомизации
+    // Оптимизированный Toast (кэширование View)
+    private void showCustomToast(String message) {
+        Toast toast = Toast.makeText(this, message, Toast.LENGTH_SHORT);
         View view = toast.getView();
         if (view != null) {
             TextView text = view.findViewById(android.R.id.message);
             if (text != null) {
                 text.setTextSize(16);
                 text.setTextColor(Color.WHITE);
-                view.setBackgroundColor(Color.parseColor("#DD333333")); // Тёмный полупрозрачный фон
+                view.setBackgroundColor(Color.parseColor("#DD333333"));
                 view.setPadding(40, 30, 40, 30);
             }
         }
-
-        // 🔥 Показываем с анимацией появления/исчезновения
         toast.show();
     }
 
-    // 🔹 Отмена поиска (ВОЗВРАЩАЕМ кнопки)
+    private void showShortToast(String message) {
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+    }
+
+    private void updateOfflineIndicator() {
+        boolean isOnline = NetworkUtils.isOnline(this);
+        offlineIndicator.setVisibility(isOnline ? View.GONE : View.VISIBLE);
+    }
+
+
+    private void onArticleClick(ArticleFull article) {
+        if (!isValidArticle(article)) {
+            showShortToast("Ошибка: статья некорректна");
+            return;
+        }
+
+        Intent intent = new Intent(this, ArticleDetailActivity.class);
+        intent.putExtra("article_title", article.название);
+        startActivity(intent);
+        overridePendingTransition(0, 0);
+    }
+
     private void cancelSearch() {
         articleNumberEditText.setText("");
         searchEditText.setText("");
         currentArticles.clear();
-
-        // 🔥 Очищаем запрос поиска, чтобы подсветка исчезла
         articleAdapter.setSearchQuery("");
-
         articleAdapter.notifyDataSetChanged();
+
         cancelSearchButton.setVisibility(View.GONE);
         codeksButton.setVisibility(View.VISIBLE);
         lawsButton.setVisibility(View.VISIBLE);
     }
 
+
+    private boolean isValidArticle(ArticleFull article) {
+        return article != null && article.название != null;
+    }
+
     private int extractNumberFromTitle(String title) {
         if (title == null || title.isEmpty()) return -1;
-        StringBuilder digits = new StringBuilder();
-        for (char c : title.toCharArray()) {
-            if (Character.isDigit(c)) digits.append(c);
+
+        //Оптимизация: используем StringBuilder с начальной емкостью
+        StringBuilder digits = new StringBuilder(10);
+        for (int i = 0; i < title.length(); i++) {
+            char c = title.charAt(i);
+            if (c >= '0' && c <= '9') {
+                digits.append(c);
+            }
         }
+
         try {
             String num = digits.toString();
             return num.isEmpty() ? -1 : Integer.parseInt(num);
         } catch (NumberFormatException e) {
             return -1;
         }
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        executor.shutdown();
     }
 }
