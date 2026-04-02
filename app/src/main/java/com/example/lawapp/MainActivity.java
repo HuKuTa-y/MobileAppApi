@@ -9,18 +9,24 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.lawapp.adapters.ArticleAdapter;
 import com.example.lawapp.api.ApiClient;
+import com.example.lawapp.api.GptApiClient;
+import com.example.lawapp.api.GptApiService;
 import com.example.lawapp.api.LawApiService;
 import com.example.lawapp.cache.CacheManager;
 import com.example.lawapp.models.ArticleFull;
+import com.example.lawapp.models.SmartSearchRequest;
+import com.example.lawapp.models.SmartSearchResponse;
 import com.example.lawapp.utils.DataPrefetcher;
 import com.example.lawapp.utils.NetworkUtils;
 
@@ -29,6 +35,8 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import retrofit2.Call;
+import retrofit2.Callback;
 import retrofit2.Response;
 
 /**
@@ -45,6 +53,8 @@ public class MainActivity extends AppCompatActivity {
     private Button findArticlesButton;
     private Button cancelSearchButton;
     private Button searchButton;
+    private GptApiService gptApiService;
+    private ProgressBar progressBar;
     private Button codeksButton;
     private Button lawsButton;
     private Button favoritesButton;
@@ -98,6 +108,13 @@ public class MainActivity extends AppCompatActivity {
         apiService = ApiClient.getService();
         executor = Executors.newFixedThreadPool(2);
         mainHandler = new Handler(Looper.getMainLooper());
+        gptApiService = GptApiClient.getService();
+        progressBar = findViewById(R.id.progressBar);
+        Button gptSearchButton = findViewById(R.id.gptSearchButton);
+        gptSearchButton.setOnClickListener(v -> {
+            String problem = searchEditText.getText().toString();
+            searchByGPT(problem);
+        });
     }
 
     private void initViews() {
@@ -123,6 +140,47 @@ public class MainActivity extends AppCompatActivity {
         updateOfflineIndicator();
     }
 
+    private void searchByGPT(String problem) {
+        if (problem.isEmpty()) {
+            Toast.makeText(this, "Введите описание проблемы", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        progressBar.setVisibility(View.VISIBLE);
+
+        SmartSearchRequest request = new SmartSearchRequest(problem);
+
+        gptApiService.smartSearch(request).enqueue(new Callback<SmartSearchResponse>() {
+            @Override
+            public void onResponse(Call<SmartSearchResponse> call, Response<SmartSearchResponse> response) {
+                progressBar.setVisibility(View.GONE);
+
+                if (response.isSuccessful() && response.body() != null) {
+                    SmartSearchResponse body = response.body();
+                    if (body.isSuccess()) {
+                        // Покажи результат
+                        showGPTResult(body.getResult());
+                    } else {
+                        Toast.makeText(MainActivity.this,
+                                "Ошибка: " + body.getError(), Toast.LENGTH_LONG).show();
+                    }
+                } else {
+                    Toast.makeText(MainActivity.this,
+                            "Ошибка сервера: " + response.code(), Toast.LENGTH_LONG).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<SmartSearchResponse> call, Throwable t) {
+                progressBar.setVisibility(View.GONE);
+                Toast.makeText(MainActivity.this,
+                        "Нет соединения: " + t.getMessage(), Toast.LENGTH_LONG).show();
+                Log.e("GPT_ERROR", "Failed", t);
+            }
+        });
+    }
+
+
     private void setupRecyclerView() {
         // ОПТИМИЗАЦИЯ: Отключаем лишние аллокации
         articlesRecyclerView.setHasFixedSize(true);
@@ -131,6 +189,15 @@ public class MainActivity extends AppCompatActivity {
         articlesRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         articleAdapter = new ArticleAdapter(currentArticles, this::onArticleClick);
         articlesRecyclerView.setAdapter(articleAdapter);
+    }
+
+    private void showGPTResult(String result) {
+        // Создай диалог или новый Activity для показа результата
+        new AlertDialog.Builder(this)
+                .setTitle("AI Помощник")
+                .setMessage(result)
+                .setPositiveButton("OK", null)
+                .show();
     }
 
     private void setupClickListeners() {

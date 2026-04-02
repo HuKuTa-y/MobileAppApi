@@ -80,7 +80,21 @@
             android:stateListAnimator="@null"
             android:maxLines="1"
             android:ellipsize="end" />
+        <Button
+            android:id="@+id/gptSearchButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Тест Yandex GPT 5.1 (AI)"
+            android:backgroundTint="#6C5CE7"
+            android:layout_marginTop="16dp" />
 
+        <!-- 🔥 Индикатор загрузки -->
+        <ProgressBar
+            android:id="@+id/progressBar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:layout_centerInParent="true" />
     </LinearLayout>
 
     <!-- 🔍 Поиск по номеру -->
