@@ -13,6 +13,8 @@ services:
     environment:
       - PYTHONUNBUFFERED=1
       - DATA_DIR=/app
+      - YANDEX_API_KEY=AQVNycnST4heyRx3QdVPc8jGyLYX_f5I_XWC8sSg  
+      - YANDEX_FOLDER_ID=b1gih7j22o930q0sp06j  
     user: "root"
     restart: unless-stopped
     healthcheck:

@@ -4,6 +4,7 @@ import json
 import os
 from typing import List, Dict, Any, Optional
 from pydantic import BaseModel
+from yandex_gpt import ask_yandex_gpt
 from urllib.parse import unquote
 
 
@@ -187,6 +188,82 @@ async def clear_cache():
     _data_cache.clear()
     return {"status": "ok", "message": f"Кэш очищен ({count} файлов)"}
 
+# Pydantic модели для запросов/ответов
+class SmartSearchRequest(BaseModel):
+    problem: str
+
+class SmartSearchResponse(BaseModel):
+    success: bool
+    result: Optional[str] = None
+    error: Optional[str] = None
+
+class SummarizeRequest(BaseModel):
+    text: str
+
+class SummarizeResponse(BaseModel):
+    success: bool
+    summary: Optional[str] = None
+    error: Optional[str] = None
+
+
+# Эндпоинт: Умный поиск по проблеме
+@app.post("/api/smart-search", response_model=SmartSearchResponse)
+async def smart_search(request: SmartSearchRequest):
+    """
+    AI-поиск статей по описанию проблемы.
+    
+    Пример: POST /api/smart-search
+    Body: {"problem": "Меня уволили без причины"}
+    """
+    try:
+        if not request.problem or len(request.problem) < 5:
+            return SmartSearchResponse(
+                success=False, 
+                error="Введите более подробное описание проблемы"
+            )
+        
+        system_prompt = """Ты юрист-помощник. Пользователь описывает проблему.
+        Найди подходящие статьи законов РФ.
+        Верни ответ в формате:
+        - Список статей с названиями и кратким описанием
+        - Общий совет что делать
+        Отвечай на русском языке."""
+        
+        result = ask_yandex_gpt(request.problem, system_prompt)
+        
+        return SmartSearchResponse(success=True, result=result)
+        
+    except Exception as e:
+        return SmartSearchResponse(success=False, error=str(e))
+
+
+# Эндпоинт: Выжимка статьи
+@app.post("/api/summarize", response_model=SummarizeResponse)
+async def summarize_article(request: SummarizeRequest):
+    """
+    Краткая выжимка юридической статьи.
+    
+    Пример: POST /api/summarize
+    Body: {"text": "полный текст статьи..."}
+    """
+    try:
+        if not request.text or len(request.text) < 100:
+            return SummarizeResponse(
+                success=False, 
+                error="Текст слишком короткий для выжимки"
+            )
+        
+        system_prompt = """Сделай краткую выжимку юридической статьи.
+        Сохраняй точность, упрощай язык.
+        Максимум 3-4 предложения.
+        Выдели ключевые пункты."""
+        
+        summary = ask_yandex_gpt(f"Сделай выжимку:\n\n{request.text}", system_prompt)
+        
+        return SummarizeResponse(success=True, summary=summary)
+        
+    except Exception as e:
+        return SummarizeResponse(success=False, error=str(e))
 
 if __name__ == "__main__":
     import uvicorn
