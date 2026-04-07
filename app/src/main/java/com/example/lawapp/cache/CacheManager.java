@@ -3,16 +3,17 @@ package com.example.lawapp.cache;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.util.LruCache;
+import android.content.Context;
 import android.util.Log;
 
 import com.example.lawapp.models.*;
+import com.example.lawapp.utils.MemoryCache;
 import com.example.lawapp.utils.NetworkUtils;
 import com.example.lawapp.utils.OfflineException;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
 import java.io.*;
-import java.lang.reflect.Type;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -135,7 +136,7 @@ public class CacheManager {
                 Log.e(TAG, "❌ Ошибка API: " + response.code() + " - " + response.message());
             }
         } catch (IOException e) {
-            Log.e(TAG, "🌐 Ошибка сети", e);
+            Log.e(TAG, "Ошибка сети", e);
         }
 
         // 🔥 3. Fallback на кэш при ошибке сети
@@ -208,6 +209,47 @@ public class CacheManager {
     // ─────────────────────────────────────────────────────────────────────────────
     // 🔹 Загрузка данных из кэша
     // ─────────────────────────────────────────────────────────────────────────────
+
+    public static void clearAllCache(Context context) {
+        File cacheDir = context.getCacheDir();
+        if (cacheDir != null && cacheDir.isDirectory()) {
+            String[] children = cacheDir.list();
+            if (children != null) {
+                for (String child : children) {
+                    // Удаляем только наши файлы кэша (.json и .cache.json)
+                    if (child.endsWith(".json") || child.endsWith(".cache.json")) {
+                        new File(cacheDir, child).delete();
+                    }
+                }
+            }
+        }
+        // Также очищаем MemoryCache (оперативную память)
+        MemoryCache.getInstance().clear();
+
+        Log.d("CacheManager", "✅ Весь кэш очищен");
+    }
+
+    /**
+     * Метод для явного сохранения списка в кэш (используется при полной загрузке)
+     */
+    public static void saveListToCache(Context context, String urlKey, String fileName, List<?> data) {
+        if (context == null || data == null) return;
+
+        try {
+            File cacheFile = new File(context.getCacheDir(), fileName);
+            Gson gson = new Gson();
+            String json = gson.toJson(data);
+
+            FileOutputStream fos = new FileOutputStream(cacheFile);
+            fos.write(json.getBytes(StandardCharsets.UTF_8));
+            fos.close();
+
+            Log.d("CacheManager", "💾 Список сохранен в кэш: " + fileName);
+        } catch (IOException e) {
+            Log.e("CacheManager", "Ошибка сохранения списка: " + e.getMessage());
+        }
+    }
+
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     private static Object loadFromCache(File file, String cacheFileName) throws IOException {
@@ -304,7 +346,7 @@ public class CacheManager {
 
         long size = calculateCacheSize(dir);
         if (size > MAX_CACHE_SIZE) {
-            Log.d(TAG, "🗑️ Кэш превышает лимит (" + size / 1024 / 1024 + " МБ), обрезка...");
+            Log.d(TAG, "Кэш превышает лимит (" + size / 1024 / 1024 + " МБ), обрезка...");
             File[] files = dir.listFiles();
             if (files != null) {
                 // Сортируем по времени (самые старые первыми)
@@ -391,6 +433,61 @@ public class CacheManager {
         CacheMetadata(long cachedAt, String sourceUrl) {
             this.cachedAt = cachedAt;
             this.sourceUrl = sourceUrl;
+        }
+    }
+    /**
+     * Сохраняет текст конкретной статьи в кэш
+     * @param context Контекст приложения
+     * @param articleTitle Название статьи (используется для имени файла)
+     * @param content Текст статьи
+     */
+    /**
+     * Сохраняет текст статьи в кэш, используя ХЭШ названия вместо полного имени.
+     * Это решает проблему ENAMETOOLONG.
+     */
+    public static void saveTextToCache(Context context, String articleTitle, String content) {
+        if (context == null || articleTitle == null || content == null) return;
+
+        try {
+            // 🔥 ГЕНЕРИРУЕМ КРОТКОЕ УНИКАЛЬНОЕ ИМЯ ФАЙЛА ЧЕРЕЗ MD5
+            String fileNameHash = generateMd5(articleTitle);
+            String fileName = "text_" + fileNameHash + ".cache.json";
+
+            File cacheFile = new File(context.getCacheDir(), fileName);
+
+            // Создаем JSON структуру
+            com.google.gson.Gson gson = new com.google.gson.Gson();
+            java.util.Map<String, String> map = new java.util.HashMap<>();
+            map.put("Название", articleTitle); // Сохраняем оригинальное название внутри JSON
+            map.put("Контент", content);
+
+            String json = gson.toJson(map);
+
+            java.io.FileOutputStream fos = new java.io.FileOutputStream(cacheFile);
+            fos.write(json.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            fos.close();
+
+            android.util.Log.d("CacheManager", "💾 Текст сохранен (хэш): " + fileNameHash);
+
+        } catch (Exception e) {
+            android.util.Log.e("CacheManager", "Ошибка сохранения текста: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    // 🔥 Вспомогательный метод для генерации MD5 хэша
+    private static String generateMd5(String input) {
+        try {
+            java.security.MessageDigest md = java.security.MessageDigest.getInstance("MD5");
+            byte[] messageDigest = md.digest(input.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            StringBuilder sb = new StringBuilder();
+            for (byte b : messageDigest) {
+                sb.append(String.format("%02x", b));
+            }
+            return sb.toString(); // Возвращает строку из 32 символов
+        } catch (Exception e) {
+            // Если ошибка, возвращаем таймстамп как запасной вариант (редко случается)
+            return String.valueOf(System.currentTimeMillis());
         }
     }
 }

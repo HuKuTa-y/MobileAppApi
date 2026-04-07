@@ -109,12 +109,9 @@ public class MainActivity extends AppCompatActivity {
         executor = Executors.newFixedThreadPool(2);
         mainHandler = new Handler(Looper.getMainLooper());
         gptApiService = GptApiClient.getService();
-        progressBar = findViewById(R.id.progressBar);
-        Button gptSearchButton = findViewById(R.id.gptSearchButton);
-        gptSearchButton.setOnClickListener(v -> {
-            String problem = searchEditText.getText().toString();
-            searchByGPT(problem);
-        });
+
+        // progressBar пока не ищем, он будет найден в initViews
+        // Button openChatButton пока не ищем
     }
 
     private void initViews() {
@@ -131,6 +128,15 @@ public class MainActivity extends AppCompatActivity {
         aboutButton = findViewById(R.id.aboutButton);
         offlineIndicator = findViewById(R.id.offlineIndicator);
         articlesRecyclerView = findViewById(R.id.articlesRecyclerView);
+
+        // 🔥 ПЕРЕНЕСЛИ СЮДА:
+        progressBar = findViewById(R.id.progressBar);
+        Button openChatButton = findViewById(R.id.openChatButton);
+
+        openChatButton.setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, ChatActivity.class);
+            startActivity(intent);
+        });
     }
 
     private void setupUI() {

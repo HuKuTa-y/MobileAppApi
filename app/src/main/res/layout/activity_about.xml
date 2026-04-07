@@ -1,196 +1,241 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="#F5F5F5">
-
-    <LinearLayout
+    <ScrollView
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:layout_height="match_parent"
+        android:background="#F5F5F5">
 
-        <!-- Toolbar -->
-        <androidx.appcompat.widget.Toolbar
-            android:id="@+id/toolbar"
-            android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            android:background="?attr/colorPrimary"
-            android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
-            app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />
-
-        <!-- Логотип приложения -->
-        <ImageView
-            android:id="@+id/appLogo"
-            android:layout_width="120dp"
-            android:layout_height="120dp"
-            android:layout_gravity="center_horizontal"
-            android:layout_marginTop="32dp"
-            android:src="@mipmap/ic_launcher"
-            android:contentDescription="Логотип приложения" />
-
-        <!-- Название приложения -->
-        <TextView
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="LawApp"
-            android:textSize="28sp"
-            android:textStyle="bold"
-            android:textColor="#000000"
-            android:gravity="center"
-            android:layout_marginTop="16dp" />
+            android:orientation="vertical">
 
-        <!-- Блок: Версия -->
-        <androidx.cardview.widget.CardView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="16dp"
-            app:cardCornerRadius="12dp"
-            app:cardElevation="4dp">
+            <!-- Toolbar -->
+            <androidx.appcompat.widget.Toolbar
+                android:id="@+id/toolbar"
+                android:layout_width="match_parent"
+                android:layout_height="?attr/actionBarSize"
+                android:background="?attr/colorPrimary"
+                android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+                app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />
 
-            <LinearLayout
+            <!-- Логотип приложения -->
+            <ImageView
+                android:id="@+id/appLogo"
+                android:layout_width="120dp"
+                android:layout_height="120dp"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="32dp"
+                android:src="@mipmap/ic_launcher"
+                android:contentDescription="Логотип приложения" />
+
+            <!-- Название приложения -->
+            <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="16dp">
+                android:text="LawApp"
+                android:textSize="28sp"
+                android:textStyle="bold"
+                android:textColor="#000000"
+                android:gravity="center"
+                android:layout_marginTop="16dp" />
 
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Информация о приложении"
-                    android:textSize="18sp"
-                    android:textStyle="bold"
-                    android:textColor="#7C4DFF"
-                    android:layout_marginBottom="12dp" />
-
-                <TextView
-                    android:id="@+id/versionText"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Версия: 1.0 (1)"
-                    android:textSize="16sp"
-                    android:textColor="#424242"
-                    android:layout_marginBottom="8dp" />
-
-                <TextView
-                    android:id="@+id/lastUpdateText"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="База обновлена: никогда"
-                    android:textSize="16sp"
-                    android:textColor="#424242"
-                    android:layout_marginBottom="8dp" />
-
-            </LinearLayout>
-        </androidx.cardview.widget.CardView>
-
-        <!-- Блок: Источник данных -->
-        <androidx.cardview.widget.CardView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginHorizontal="16dp"
-            android:layout_marginBottom="16dp"
-            app:cardCornerRadius="12dp"
-            app:cardElevation="4dp">
-
-            <LinearLayout
+            <!-- Блок: Версия -->
+            <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="16dp">
+                android:layout_margin="16dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="4dp">
 
-                <TextView
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Источник данных"
-                    android:textSize="18sp"
-                    android:textStyle="bold"
-                    android:textColor="#7C4DFF"
-                    android:layout_marginBottom="12dp" />
+                    android:orientation="vertical"
+                    android:padding="16dp">
 
-                <TextView
-                    android:id="@+id/sourceText"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Источник: Законодательство РФ"
-                    android:textSize="16sp"
-                    android:textColor="#424242"
-                    android:lineSpacingExtra="4dp" />
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Информация о приложении"
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        android:textColor="#7C4DFF"
+                        android:layout_marginBottom="12dp" />
 
-            </LinearLayout>
-        </androidx.cardview.widget.CardView>
+                    <TextView
+                        android:id="@+id/versionText"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Версия: 1.0 (1)"
+                        android:textSize="16sp"
+                        android:textColor="#FFFFFF"
+                        android:layout_marginBottom="8dp" />
 
-        <!-- Блок: Контакты -->
-        <androidx.cardview.widget.CardView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginHorizontal="16dp"
-            android:layout_marginBottom="16dp"
-            app:cardCornerRadius="12dp"
-            app:cardElevation="4dp">
+                    <TextView
+                        android:id="@+id/lastUpdateText"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="База обновлена: никогда"
+                        android:textSize="16sp"
+                        android:textColor="#FFFFFF"
+                        android:layout_marginBottom="8dp" />
 
-            <LinearLayout
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- Блок: Источник данных -->
+            <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="16dp">
+                android:layout_marginHorizontal="16dp"
+                android:layout_marginBottom="16dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="4dp">
 
-                <TextView
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Связь с разработчиком"
-                    android:textSize="18sp"
-                    android:textStyle="bold"
-                    android:textColor="#7C4DFF"
-                    android:layout_marginBottom="12dp" />
+                    android:orientation="vertical"
+                    android:padding="16dp">
 
-                <TextView
-                    android:id="@+id/contactText"
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Источник данных"
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        android:textColor="#7C4DFF"
+                        android:layout_marginBottom="12dp" />
+
+                    <TextView
+                        android:id="@+id/sourceText"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Источник: Законодательство РФ"
+                        android:textSize="16sp"
+                        android:textColor="#FFFFFF"
+                        android:lineSpacingExtra="4dp" />
+
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- Блок: Контакты -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="16dp"
+                android:layout_marginBottom="16dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="4dp">
+
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="support@lawapp.example.com"
-                    android:textSize="16sp"
-                    android:textColor="#424242"
-                    android:layout_marginBottom="8dp"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:background="?attr/selectableItemBackground"
-                    android:padding="8dp" />
+                    android:orientation="vertical"
+                    android:padding="16dp">
 
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Сообщите об ошибке или предложите идею"
-                    android:textSize="14sp"
-                    android:textColor="#757575"
-                    android:fontStyle="italic" />
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Связь с разработчиком"
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        android:textColor="#7C4DFF"
+                        android:layout_marginBottom="12dp" />
 
-            </LinearLayout>
-        </androidx.cardview.widget.CardView>
+                    <TextView
+                        android:id="@+id/contactText"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="support@lawapp.example.com"
+                        android:textSize="16sp"
+                        android:textColor="#FFFFFF"
+                        android:layout_marginBottom="8dp"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:background="?attr/selectableItemBackground"
+                        android:padding="8dp" />
 
-        <!-- Кнопка проверки обновлений -->
-        <Button
-            android:id="@+id/checkUpdatesButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="🔄 Проверить обновления базы"
-            android:textSize="16sp"
-            android:padding="16dp"
-            android:layout_marginHorizontal="16dp"
-            android:layout_marginBottom="32dp"
-            android:background="@color/purple_200"
-            android:textColor="@color/white" />
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Сообщите об ошибке или предложите идею"
+                        android:textSize="14sp"
+                        android:textColor="#FFFFFF"
+                        android:fontStyle="italic" />
 
-        <!-- Копирайт -->
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="© 2026 LawApp. Все права защищены."
-            android:textSize="14sp"
-            android:textColor="#757575"
-            android:gravity="center"
-            android:layout_marginBottom="24dp" />
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
 
-    </LinearLayout>
-</ScrollView>
+            <!-- Кнопка проверки обновлений -->
+            <Button
+                android:id="@+id/checkUpdatesButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="🔄 Проверить обновления базы"
+                android:textSize="16sp"
+                android:padding="16dp"
+                android:layout_marginHorizontal="16dp"
+                android:layout_marginBottom="32dp"
+                android:background="@color/purple_200"
+                android:textColor="@color/white" />
+
+            <!-- Разделитель -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="#CCCCCC"
+                android:layout_marginHorizontal="16dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="16dp" />
+
+            <!-- Кнопка: Скачать всё для офлайн-режима -->
+            <Button
+                android:id="@+id/downloadAllButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Скачать ВСЁ для офлайна (Для разработчиков)"
+                android:textSize="14sp"
+                android:padding="12dp"
+                android:layout_marginHorizontal="16dp"
+                android:layout_marginBottom="8dp"
+                android:backgroundTint="#4CAF50"
+                android:textColor="@color/white" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="⚠️ Загрузит все кодексы, законы и тексты статей. Требует интернета."
+                android:textSize="12sp"
+                android:textColor="#757575"
+                android:gravity="center"
+                android:layout_marginHorizontal="24dp"
+                android:layout_marginBottom="16dp" />
+
+            <!-- Кнопка: Очистить кэш -->
+            <Button
+                android:id="@+id/clearCacheButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Откатить (Удалить весь кэш)"
+                android:textSize="14sp"
+                android:padding="12dp"
+                android:layout_marginHorizontal="16dp"
+                android:layout_marginBottom="32dp"
+                android:backgroundTint="#F44336"
+                android:textColor="@color/white" />
+
+            <!-- Копирайт -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="© 2026 LawApp. Все права защищены."
+                android:textSize="14sp"
+                android:textColor="#757575"
+                android:gravity="center"
+                android:layout_marginBottom="24dp" />
+
+        </LinearLayout>
+    </ScrollView>

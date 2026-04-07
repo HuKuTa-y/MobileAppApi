@@ -5,6 +5,7 @@ import android.graphics.Color;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.style.ForegroundColorSpan;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -31,7 +32,7 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ViewHold
 
     // 🔥 Кэшированные цвета (не создавать каждый раз!)
     private static final int COLOR_HIGHLIGHT = Color.parseColor("#D32F2F");
-    private static final int COLOR_TEXT_NORMAL = Color.parseColor("#1A1A1A");
+    private static final int COLOR_TEXT_NORMAL = Color.parseColor("#FFFFFF");
     private static final int COLOR_TEXT_DISABLED = Color.parseColor("#757575");
     private static final int COLOR_BG_AVAILABLE = Color.parseColor("#3364B5F5");
     private static final int COLOR_BG_UNAVAILABLE = Color.parseColor("#E664B5F5");
@@ -67,6 +68,9 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ViewHold
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+        // 🔥 Лог для проверки что binding работает
+        Log.d("ADAPTER_DEBUG", "Binding position " + position + " of " + getItemCount());
+
         ArticleFull article = articlesList.get(position);
         holder.bind(article, searchQuery);
     }
@@ -104,7 +108,7 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ViewHold
             // 🔥 Отключаем фокус для производительности
             textView.setFocusable(false);
             textView.setClickable(false);
-            itemView.setHasTransientState(false);
+
 
             // 🔥 Клик устанавливается ОДИН РАЗ (не в onBindViewHolder!)
             itemView.setOnClickListener(v -> {

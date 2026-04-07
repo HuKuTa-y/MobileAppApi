@@ -1,247 +1,272 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="#F5F5F5"
-    android:padding="8dp">
-
-    <!-- 🔥 ОФФЛАЙН ИНДИКАТОР (самый верх) -->
-    <LinearLayout
-        android:id="@+id/offlineIndicator"
+    <androidx.constraintlayout.widget.ConstraintLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:background="#FF9800"
-        android:padding="12dp"
-        android:gravity="center"
-        android:visibility="gone"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+        android:layout_height="match_parent"
+        android:background="#F5F5F5"
+        android:padding="8dp">
 
-        <ImageView
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:src="@android:drawable/stat_notify_error"
-            android:contentDescription="@string/off"
-            app:tint="@color/white" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/offline"
-            android:textColor="@color/white"
-            android:textSize="14sp"
-            android:layout_marginStart="8dp" />
-
-    </LinearLayout>
-
-    <!-- 🔥 КОНТЕЙНЕР ДЛЯ КНОПОК (Избранное + Заметки по 50%) -->
-    <LinearLayout
-        android:id="@+id/topButtonsContainer"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:layout_marginBottom="8dp"
-        app:layout_constraintTop_toBottomOf="@id/offlineIndicator"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
-
-        <!-- 🔥 Кнопка Избранное (50%) -->
-        <Button
-            android:id="@+id/favoritesButton"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="@string/favourites"
-            android:textSize="14sp"
-            android:padding="12dp"
-            android:layout_marginEnd="4dp"
-            android:background="@color/purple_200"
-            android:textColor="@color/white"
-            android:stateListAnimator="@null"
-            android:maxLines="1"
-            android:ellipsize="end" />
-
-        <!-- 🔥 Кнопка Заметки (50%) -->
-        <Button
-            android:id="@+id/notesButton"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="@string/nodes"
-            android:textSize="14sp"
-            android:padding="12dp"
-            android:layout_marginStart="4dp"
-            android:background="@color/purple_200"
-            android:textColor="@color/white"
-            android:stateListAnimator="@null"
-            android:maxLines="1"
-            android:ellipsize="end" />
-        <Button
-            android:id="@+id/gptSearchButton"
+        <!-- ОФФЛАЙН ИНДИКАТОР (самый верх) -->
+        <LinearLayout
+            android:id="@+id/offlineIndicator"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Тест Yandex GPT 5.1 (AI)"
-            android:backgroundTint="#6C5CE7"
-            android:layout_marginTop="16dp" />
+            android:orientation="horizontal"
+            android:background="#FF9800"
+            android:padding="12dp"
+            android:gravity="center"
+            android:visibility="gone"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
 
-        <!-- 🔥 Индикатор загрузки -->
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@android:drawable/stat_notify_error"
+                android:contentDescription="@string/off"
+                app:tint="@color/white" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/offline"
+                android:textColor="@color/white"
+                android:textSize="14sp"
+                android:layout_marginStart="8dp" />
+        </LinearLayout>
+
+        <!-- КОНТЕЙНЕР ДЛЯ КНОПОК (Избранное + Заметки) -->
+        <LinearLayout
+            android:id="@+id/topButtonsContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="8dp"
+            app:layout_constraintTop_toBottomOf="@id/offlineIndicator"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
+
+            <Button
+                android:id="@+id/favoritesButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/favourites"
+                android:textSize="14sp"
+                android:padding="12dp"
+                android:layout_marginEnd="4dp"
+                android:background="@color/purple_200"
+                android:textColor="@color/white"
+                android:stateListAnimator="@null"
+                android:maxLines="1"
+                android:ellipsize="end" />
+
+            <Button
+                android:id="@+id/notesButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/nodes"
+                android:textSize="14sp"
+                android:padding="12dp"
+                android:layout_marginStart="4dp"
+                android:background="@color/purple_200"
+                android:textColor="@color/white"
+                android:stateListAnimator="@null"
+                android:maxLines="1"
+                android:ellipsize="end" />
+        </LinearLayout>
+
+
+        <!-- Поиск по номеру -->
+        <LinearLayout
+            android:id="@+id/searchNumberPanel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="4dp"
+            app:layout_constraintTop_toBottomOf="@id/topButtonsContainer">
+
+            <EditText
+                android:id="@+id/articleNumberEditText"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="@android:drawable/edit_text"
+                android:hint="@string/number"
+                android:inputType="number"
+                android:padding="10dp"
+                android:textSize="14sp" />
+
+            <Button
+                android:id="@+id/findArticlesButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/look"
+                android:layout_marginStart="6dp"
+                android:textSize="14sp" />
+
+            <Button
+                android:id="@+id/cancelSearchButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/x"
+                android:layout_marginStart="4dp"
+                android:textSize="14sp"
+                android:visibility="gone" />
+        </LinearLayout>
+
+        <!-- Поиск по тексту -->
+        <LinearLayout
+            android:id="@+id/searchTextPanel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="4dp"
+            app:layout_constraintTop_toBottomOf="@id/searchNumberPanel">
+
+            <EditText
+                android:id="@+id/searchEditText"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:hint="@string/text"
+                android:inputType="text"
+                android:padding="10dp"
+                android:background="@android:drawable/edit_text"
+                android:textSize="14sp" />
+
+            <Button
+                android:id="@+id/searchButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/search"
+                android:layout_marginStart="6dp"
+                android:textSize="14sp" />
+        </LinearLayout>
+
+        <!-- Кнопка Кодексы -->
+        <Button
+            android:id="@+id/codeksButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/codeks"
+            android:textSize="16sp"
+            android:padding="12dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="4dp"
+            android:gravity="center"
+            android:maxLines="2"
+            android:ellipsize="end"
+            app:layout_constraintTop_toBottomOf="@id/searchTextPanel"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <!-- Кнопка Законы -->
+        <Button
+            android:id="@+id/lawsButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/laws"
+            android:textSize="16sp"
+            android:padding="12dp"
+            android:layout_marginBottom="8dp"
+            android:gravity="center"
+            android:maxLines="2"
+            android:ellipsize="end"
+            app:layout_constraintTop_toBottomOf="@id/codeksButton"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <!-- ═══════════════════════════════════════════════════ -->
+        <!-- СЕКЦИЯ AI ПОМОЩНИКА (ВСТАВЛЕНО СЮДА) -->
+        <!-- ═══════════════════════════════════════════════════ -->
+
+        <TextView
+            android:id="@+id/gptSectionTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="AI Помощник"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="#6C5CE7"
+            android:layout_marginTop="12dp"
+            android:layout_marginBottom="4dp"
+            app:layout_constraintTop_toBottomOf="@id/lawsButton"
+            app:layout_constraintStart_toStartOf="parent" />
+
+    <!-- Кнопка Открыть чат с AI -->
+    <Button
+        android:id="@+id/openChatButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="💬 Открыть чат с AI"
+        android:backgroundTint="#6C5CE7"
+        android:textColor="@android:color/white"
+        android:layout_marginTop="8dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        app:layout_constraintTop_toBottomOf="@id/gptSectionTitle"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/articlesRecyclerView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp"
+        android:clipToPadding="false"
+        app:layout_constraintTop_toBottomOf="@id/openChatButton"
+        app:layout_constraintBottom_toTopOf="@id/historyButton"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+        <!-- Кнопка История -->
+        <Button
+            android:id="@+id/historyButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/history"
+            android:textSize="16sp"
+            android:padding="12dp"
+            android:layout_marginHorizontal="8dp"
+            android:layout_marginBottom="4dp"
+            android:background="@color/purple_200"
+            android:textColor="@color/white"
+            android:stateListAnimator="@null"
+            app:layout_constraintBottom_toTopOf="@id/aboutButton"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <!-- Кнопка О приложении -->
+        <Button
+            android:id="@+id/aboutButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/about"
+            android:textSize="16sp"
+            android:padding="12dp"
+            android:layout_marginHorizontal="8dp"
+            android:layout_marginBottom="8dp"
+            android:background="@color/purple_200"
+            android:textColor="@color/white"
+            android:stateListAnimator="@null"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <!-- Индикатор загрузки (ОТДЕЛЬНО, плавающий по центру) -->
         <ProgressBar
             android:id="@+id/progressBar"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:visibility="gone"
-            android:layout_centerInParent="true" />
-    </LinearLayout>
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- 🔍 Поиск по номеру -->
-    <LinearLayout
-        android:id="@+id/searchNumberPanel"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:padding="4dp"
-        app:layout_constraintTop_toBottomOf="@id/topButtonsContainer">
-
-        <EditText
-            android:id="@+id/articleNumberEditText"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:background="@android:drawable/edit_text"
-            android:hint="@string/number"
-            android:inputType="number"
-            android:padding="10dp"
-            android:textSize="14sp" />
-
-        <Button
-            android:id="@+id/findArticlesButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/look"
-            android:layout_marginStart="6dp"
-            android:textSize="14sp" />
-
-        <Button
-            android:id="@+id/cancelSearchButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/x"
-            android:layout_marginStart="4dp"
-            android:textSize="14sp"
-            android:visibility="gone" />
-    </LinearLayout>
-
-    <!-- 🔍 Поиск по тексту -->
-    <LinearLayout
-        android:id="@+id/searchTextPanel"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:padding="4dp"
-        app:layout_constraintTop_toBottomOf="@id/searchNumberPanel">
-
-        <EditText
-            android:id="@+id/searchEditText"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:hint="@string/text"
-            android:inputType="text"
-            android:padding="10dp"
-            android:background="@android:drawable/edit_text"
-            android:textSize="14sp" />
-
-        <Button
-            android:id="@+id/searchButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/search"
-            android:layout_marginStart="6dp"
-            android:textSize="14sp" />
-    </LinearLayout>
-
-    <!-- 🔥 Кнопка Кодексы (на всю ширину) -->
-    <Button
-        android:id="@+id/codeksButton"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/codeks"
-        android:textSize="16sp"
-        android:padding="12dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginBottom="4dp"
-        android:gravity="center"
-        android:maxLines="2"
-        android:ellipsize="end"
-        app:layout_constraintTop_toBottomOf="@id/searchTextPanel"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
-
-    <!-- 🔥 Кнопка Законы (на всю ширину) -->
-    <Button
-        android:id="@+id/lawsButton"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/laws"
-        android:textSize="16sp"
-        android:padding="12dp"
-        android:layout_marginBottom="8dp"
-        android:gravity="center"
-        android:maxLines="2"
-        android:ellipsize="end"
-        app:layout_constraintTop_toBottomOf="@id/codeksButton"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
-
-    <!-- 🔥 Результаты поиска (занимает всё оставшееся место) -->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/articlesRecyclerView"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_marginTop="4dp"
-        android:padding="2dp"
-        android:clipToPadding="false"
-        app:layout_constraintTop_toBottomOf="@id/lawsButton"
-        app:layout_constraintBottom_toTopOf="@id/historyButton"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
-
-    <!-- Кнопка История -->
-    <Button
-        android:id="@+id/historyButton"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/history"
-        android:textSize="16sp"
-        android:padding="12dp"
-        android:layout_marginHorizontal="8dp"
-        android:layout_marginBottom="4dp"
-        android:background="@color/purple_200"
-        android:textColor="@color/white"
-        android:stateListAnimator="@null"
-        app:layout_constraintBottom_toTopOf="@id/aboutButton"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
-
-    <!-- 🔥 Кнопка О приложении -->
-    <Button
-        android:id="@+id/aboutButton"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/about"
-        android:textSize="16sp"
-        android:padding="12dp"
-        android:layout_marginHorizontal="8dp"
-        android:layout_marginBottom="8dp"
-        android:background="@color/purple_200"
-        android:textColor="@color/white"
-        android:stateListAnimator="@null"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
-
-</androidx.constraintlayout.widget.ConstraintLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
