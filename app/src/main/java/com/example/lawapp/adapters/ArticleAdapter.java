@@ -24,19 +24,20 @@ import java.util.List;
 import java.util.Locale;
 
 /**
- * Оптимизированный адаптер для списка статей
- * 🔥 Кэширование цветов, подсветки и кликов
- * 🔥 60 FPS прокрутка
+ * Адаптер: Статьи - темные, Главы/Разделы - светлые (только в офлайне).
  */
 public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ViewHolder> {
 
-    // 🔥 Кэшированные цвета (не создавать каждый раз!)
-    private static final int COLOR_HIGHLIGHT = Color.parseColor("#D32F2F");
-    private static final int COLOR_TEXT_NORMAL = Color.parseColor("#FFFFFF");
-    private static final int COLOR_TEXT_DISABLED = Color.parseColor("#757575");
-    private static final int COLOR_BG_AVAILABLE = Color.parseColor("#3364B5F5");
-    private static final int COLOR_BG_UNAVAILABLE = Color.parseColor("#E664B5F5");
-    private static final int COLOR_BG_TRANSPARENT = Color.TRANSPARENT;
+    // ЦВЕТА
+    private static final int COLOR_HIGHLIGHT = Color.parseColor("#D32F2F"); // Красный для поиска
+    private static final int COLOR_TEXT_NORMAL = Color.parseColor("#FFFFFF"); // Белый текст
+
+    // Синие оттенки для офлайна
+    private static final int COLOR_BG_ARTICLE = Color.parseColor("#3364B5F5");   // ТЕМНО-СИНИЙ (для статей)
+    private static final int COLOR_BG_SECTION = Color.parseColor("#5580C0E0");   // СВЕТЛО-СИНИЙ (для глав/разделов)
+    private static final int COLOR_BG_UNAVAILABLE = Color.parseColor("#E664B5F5"); // Полупрозрачный (недоступные статьи)
+
+    private static final int COLOR_BG_TRANSPARENT = Color.TRANSPARENT; // Прозрачный (онлайн)
 
     private List<ArticleFull> articlesList;
     private OnArticleClickListener listener;
@@ -49,8 +50,6 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ViewHold
     public ArticleAdapter(List<ArticleFull> articlesList, OnArticleClickListener listener) {
         this.articlesList = articlesList;
         this.listener = listener;
-
-        // 🔥 ВКЛЮЧАЕМ Stable IDs (вместо переопределения метода)
         setHasStableIds(true);
     }
 
@@ -68,9 +67,6 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ViewHold
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        // 🔥 Лог для проверки что binding работает
-        Log.d("ADAPTER_DEBUG", "Binding position " + position + " of " + getItemCount());
-
         ArticleFull article = articlesList.get(position);
         holder.bind(article, searchQuery);
     }
@@ -80,7 +76,6 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ViewHold
         return articlesList != null ? articlesList.size() : 0;
     }
 
-    // 🔥 Возвращаем уникальный ID для каждой статьи
     @Override
     public long getItemId(int position) {
         ArticleFull article = articlesList.get(position);
@@ -89,10 +84,6 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ViewHold
         }
         return super.getItemId(position);
     }
-
-    // ─────────────────────────────────────────────────────────────────────────────
-    // 🔹 ViewHolder с оптимизацией
-    // ─────────────────────────────────────────────────────────────────────────────
 
     static class ViewHolder extends RecyclerView.ViewHolder {
         private final TextView textView;
@@ -105,18 +96,14 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ViewHold
             context = itemView.getContext();
             this.listener = listener;
 
-            // 🔥 Отключаем фокус для производительности
             textView.setFocusable(false);
             textView.setClickable(false);
 
-
-            // 🔥 Клик устанавливается ОДИН РАЗ (не в onBindViewHolder!)
             itemView.setOnClickListener(v -> {
                 int pos = getAdapterPosition();
                 if (pos != RecyclerView.NO_POSITION && listener != null) {
                     ArticleFull article = (ArticleFull) itemView.getTag();
                     if (article != null && article.название != null) {
-                        // 🔥 Проверка доступности статьи
                         if (!CacheManager.canOpenArticle(context, article.название)) {
                             Toast.makeText(context,
                                     "⚠️ Статья недоступна офлайн. Подключитесь к интернету.",
@@ -129,22 +116,18 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ViewHold
             });
         }
 
-        // 🔥 Метод bind для чистой логики
         void bind(ArticleFull article, String searchQuery) {
-            // Сохраняем статью в tag для клика
             itemView.setTag(article);
 
             if (article == null || article.название == null) {
                 textView.setText("Без названия");
-                textView.setTextColor(COLOR_TEXT_DISABLED);
-                itemView.setAlpha(0.5f);
+                textView.setTextColor(Color.GRAY);
                 itemView.setBackgroundColor(COLOR_BG_TRANSPARENT);
                 return;
             }
 
             String title = article.название;
 
-            // 🔥 Подсветка поиска (оптимизировано)
             if (!searchQuery.isEmpty()) {
                 textView.setText(applyHighlight(title, searchQuery));
             } else {
@@ -153,19 +136,12 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ViewHold
 
             textView.setTextColor(COLOR_TEXT_NORMAL);
 
-            // 🔥 Визуальная доступность (офлайн-режим)
             updateAvailability(article);
         }
 
-        // 🔥 Вынесенная логика подсветки (меньше аллокаций)
         private SpannableString applyHighlight(String text, String query) {
-            // 🔥 ДОБАВЛЕНО: Защита от null
-            if (text == null) {
-                return new SpannableString("");
-            }
-            if (query == null || query.isEmpty()) {
-                return new SpannableString(text);
-            }
+            if (text == null) return new SpannableString("");
+            if (query == null || query.isEmpty()) return new SpannableString(text);
 
             SpannableString spannable = new SpannableString(text);
             String lowerText = text.toLowerCase(Locale.getDefault());
@@ -184,36 +160,45 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ViewHold
             return spannable;
         }
 
-        // 🔥 Оптимизированная проверка доступности
         private void updateAvailability(ArticleFull article) {
             boolean isOnline = NetworkUtils.isOnline(context);
             boolean isCached = CacheManager.isArticleTextCached(article.название);
 
+            String title = article.название;
+            // Проверяем, является ли элемент Разделом или Главой
+            boolean isSectionOrChapter = title.startsWith("Раздел") || title.startsWith("Глава");
+
             if (isOnline) {
-                // ✅ Есть интернет — обычный вид
+                // ✅ ЕСТЬ ИНТЕРНЕТ: Ничего не выделяем (прозрачный фон)
                 itemView.setBackgroundColor(COLOR_BG_TRANSPARENT);
                 itemView.setAlpha(1.0f);
             } else {
-                // ❌ Нет интернета — показываем доступность
-                if (isCached) {
-                    // ✅ В кэше — можно открыть
-                    itemView.setBackgroundColor(COLOR_BG_AVAILABLE);
+                //  НЕТ ИНТЕРНЕТА: Используем синие оттенки
+
+                if (isSectionOrChapter) {
+                    // Это Раздел или Глава -> СВЕТЛО-СИНИЙ фон
+                    itemView.setBackgroundColor(COLOR_BG_SECTION);
                     itemView.setAlpha(1.0f);
                 } else {
-                    // ❌ Не в кэше — нельзя открыть
-                    itemView.setBackgroundColor(COLOR_BG_UNAVAILABLE);
-                    itemView.setAlpha(0.4f);
+                    // Это СТАТЬЯ
+                    if (isCached) {
+                        // Статья в кэше -> ТЕМНО-СИНИЙ фон
+                        itemView.setBackgroundColor(COLOR_BG_ARTICLE);
+                        itemView.setAlpha(1.0f);
+                    } else {
+                        // Статья НЕ в кэше -> Полупрозрачный темно-синий
+                        itemView.setBackgroundColor(COLOR_BG_UNAVAILABLE);
+                        itemView.setAlpha(0.4f);
+                    }
                 }
             }
         }
 
-        // 🔥 Освобождаем ресурсы при рециклинге
         void recycle() {
             itemView.setTag(null);
         }
     }
 
-    // 🔥 Освобождаем память при детаче
     @Override
     public void onViewRecycled(@NonNull ViewHolder holder) {
         super.onViewRecycled(holder);

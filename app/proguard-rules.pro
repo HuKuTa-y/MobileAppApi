@@ -31,6 +31,11 @@
     @com.google.gson.annotations.SerializedName <fields>;
 }
 
+# Сохраняем классы Firebase Crashlytics
+-keep class com.google.firebase.crashlytics.** { *; }
+-keep interface com.google.firebase.crashlytics.** { *; }
+-dontwarn com.google.firebase.crashlytics.**
+
 # ============================================================================
 # RETROFIT RULES
 # ============================================================================

@@ -68,7 +68,7 @@ public class MainActivity extends AppCompatActivity {
     private ArticleAdapter articleAdapter;
 
     // Data (используем ArrayList с начальной емкостью)
-    private final List<ArticleFull> articlesFull = new ArrayList<>(1000);
+    static final List<ArticleFull> articlesFull = new ArrayList<>(1000);
     private final List<ArticleFull> currentArticles = new ArrayList<>();
 
     // API & Threading
@@ -186,6 +186,15 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    private List<ArticleFull> searchArticlesLocallyByNumber(int number) {
+        List<ArticleFull> results = new ArrayList<>();
+        for (ArticleFull article : articlesFull) {
+            if (isValidArticle(article) && extractNumberFromTitle(article.название) == number) {
+                results.add(article);
+            }
+        }
+        return results;
+    }
 
     private void setupRecyclerView() {
         // ОПТИМИЗАЦИЯ: Отключаем лишние аллокации
@@ -267,9 +276,26 @@ public class MainActivity extends AppCompatActivity {
 
         try {
             int number = Integer.parseInt(text);
-            List<ArticleFull> results = searchArticlesByNumber(number);
-            articleAdapter.setSearchQuery(text);
-            showSearchResults(results);
+
+            // 🔥 ПРОВЕРКА: Если база пуста или поиск локальный не дал результата, идем в сеть
+            // Но делаем это В ФОНОВОМ ПОТОКЕ!
+            executor.execute(() -> {
+                List<ArticleFull> results;
+
+                // Сначала пробуем найти локально (если база загружена)
+                if (!articlesFull.isEmpty()) {
+                    results = searchArticlesLocallyByNumber(number);
+                    if (!results.isEmpty()) {
+                        showSearchResults(results);
+                        return;
+                    }
+                }
+
+                // Если локально не нашли или база пуста -> идем на сервер
+                results = searchOnServerByNumber(number);
+                showSearchResults(results);
+            });
+
         } catch (NumberFormatException e) {
             showShortToast("Введите корректный номер");
         }
@@ -282,30 +308,60 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-        List<ArticleFull> results = searchArticlesByText(query);
-        articleAdapter.setSearchQuery(query);
-        showSearchResults(results);
+        //  ЗАПУСКАЕМ В ФОНОВОМ ПОТОКЕ
+        executor.execute(() -> {
+            List<ArticleFull> results;
+
+            // Сначала пробуем найти локально
+            if (!articlesFull.isEmpty()) {
+                results = searchLocallyByText(query);
+                if (!results.isEmpty()) {
+                    showSearchResults(results);
+                    return;
+                }
+            }
+
+            // Если локально не нашли -> идем на сервер
+            results = searchOnServerByText(query);
+            showSearchResults(results);
+        });
     }
 
     private List<ArticleFull> searchArticlesByNumber(int number) {
-        if (!articlesFull.isEmpty()) {
-            List<ArticleFull> results = new ArrayList<>();
-            for (ArticleFull article : articlesFull) {
-                if (isValidArticle(article) && extractNumberFromTitle(article.название) == number) {
-                    results.add(article);
-                }
-            }
-            if (!results.isEmpty()) return results;
+        // Если база еще не загружена, сразу идем на сервер
+        if (articlesFull.isEmpty()) {
+            Log.d(TAG, "База пуста, ищем на сервере...");
+            return searchOnServerByNumber(number);
         }
-        return searchOnServerByNumber(number);
+
+        List<ArticleFull> results = new ArrayList<>();
+        for (ArticleFull article : articlesFull) {
+            if (isValidArticle(article) && extractNumberFromTitle(article.название) == number) {
+                results.add(article);
+            }
+        }
+
+        // Если локально ничего не нашли, пробуем сервер (опционально)
+        if (results.isEmpty()) {
+            return searchOnServerByNumber(number);
+        }
+
+        return results;
     }
 
     private List<ArticleFull> searchArticlesByText(String query) {
-        if (!articlesFull.isEmpty()) {
-            List<ArticleFull> results = searchLocallyByText(query);
-            if (!results.isEmpty()) return results;
+        if (articlesFull.isEmpty()) {
+            Log.d(TAG, "База пуста, ищем на сервере...");
+            return searchOnServerByText(query);
         }
-        return searchOnServerByText(query);
+
+        List<ArticleFull> results = searchLocallyByText(query);
+
+        if (results.isEmpty()) {
+            return searchOnServerByText(query);
+        }
+
+        return results;
     }
 
     private List<ArticleFull> searchLocallyByText(String query) {
@@ -328,11 +384,17 @@ public class MainActivity extends AppCompatActivity {
 
     private List<ArticleFull> searchOnServerByNumber(int number) {
         try {
+            // Этот вызов .execute() теперь безопасен, так как мы внутри executor.execute()
             Response<List<ArticleFull>> response = apiService.searchByNumber(number).execute();
-            return response.body() != null ? response.body() : new ArrayList<>();
+            if (response.body() == null) {
+                Log.w(TAG, "Сервер вернул null при поиске по номеру");
+                return new ArrayList<>();
+            }
+            return response.body();
         } catch (Exception e) {
             Log.e(TAG, "Ошибка поиска по номеру: " + e.getMessage(), e);
-            runOnUiThread(() -> showShortToast("Ошибка поиска: " + e.getMessage()));
+            // Важно: показываем ошибку в UI потоке
+            runOnUiThread(() -> showShortToast("Ошибка сети при поиске"));
             return new ArrayList<>();
         }
     }
@@ -340,10 +402,14 @@ public class MainActivity extends AppCompatActivity {
     private List<ArticleFull> searchOnServerByText(String query) {
         try {
             Response<List<ArticleFull>> response = apiService.searchByText(query).execute();
-            return response.body() != null ? response.body() : new ArrayList<>();
+            if (response.body() == null) {
+                Log.w(TAG, "Сервер вернул null при поиске по тексту");
+                return new ArrayList<>();
+            }
+            return response.body();
         } catch (Exception e) {
             Log.e(TAG, "Ошибка поиска по тексту: " + e.getMessage(), e);
-            runOnUiThread(() -> showShortToast("Ошибка поиска: " + e.getMessage()));
+            runOnUiThread(() -> showShortToast("Ошибка сети при поиске"));
             return new ArrayList<>();
         }
     }
@@ -352,7 +418,12 @@ public class MainActivity extends AppCompatActivity {
     private void showSearchResults(List<ArticleFull> results) {
         mainHandler.post(() -> {
             currentArticles.clear();
-            if (results != null) currentArticles.addAll(results);
+
+            // 🔥 ГАРАНТИЯ: Если results null, используем пустой список
+            if (results != null) {
+                currentArticles.addAll(results);
+            }
+
             articleAdapter.notifyDataSetChanged();
 
             cancelSearchButton.setVisibility(View.VISIBLE);

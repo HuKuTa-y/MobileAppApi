@@ -1,8 +1,11 @@
 plugins {
     id("com.android.application")
+    id ("com.google.gms.google-services")
 }
 
-android {
+
+
+android     {
     namespace = "com.example.lawapp"
     compileSdk = 35
 
@@ -92,7 +95,14 @@ android {
 
 dependencies {
 
+
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
+
+    implementation(platform("com.google.firebase:firebase-bom:34.12.0"))
+
+    implementation("com.google.firebase:firebase-analytics")
+
+    implementation(libs.firebase.crashlytics)
 
     // AndroidX
     implementation("androidx.appcompat:appcompat:1.6.1")

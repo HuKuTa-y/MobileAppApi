@@ -16,6 +16,20 @@
         app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <!-- 🔥 КНОПКА ИСТОРИИ (СПРАВА СВЕРХУ, РЯДОМ С ЗАГОЛОВКОМ) -->
+    <ImageButton
+        android:id="@+id/btnHistory"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:src="@android:drawable/ic_menu_recent_history"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="История"
+        android:tint="#FFFFFF"
+        app:layout_constraintEnd_toEndOf="@id/toolbar"
+        app:layout_constraintTop_toTopOf="@id/toolbar"
+        app:layout_constraintBottom_toBottomOf="@id/toolbar"
+        android:layout_marginEnd="8dp" />
+
     <!-- Список сообщений (История чата) -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/chatRecyclerView"
@@ -26,7 +40,7 @@
         app:layout_constraintTop_toBottomOf="@id/toolbar"
         app:layout_constraintBottom_toTopOf="@id/inputContainer" />
 
-    <!-- Контейнер ввода (внизу) -->
+    <!-- Контейнер ввода (внизу) - УБРАЛ ОТСЮДА КНОПКУ ИСТОРИИ -->
     <LinearLayout
         android:id="@+id/inputContainer"
         android:layout_width="match_parent"
@@ -56,9 +70,11 @@
             android:layout_marginStart="8dp"
             android:backgroundTint="#6C5CE7"
             android:textColor="@android:color/white" />
+
+        <!-- Кнопка истории больше здесь не нужна -->
     </LinearLayout>
 
-    <!-- Индикатор загрузки (появляется при ожидании ответа) -->
+    <!-- Индикатор загрузки -->
     <ProgressBar
         android:id="@+id/loadingIndicator"
         android:layout_width="wrap_content"

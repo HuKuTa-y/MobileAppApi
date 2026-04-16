@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="#FFFFFF"
+    android:padding="16dp">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Мои чаты"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:textColor="#000000"
+        android:paddingBottom="12dp"/>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvHistory"
+        android:layout_width="match_parent"
+        android:layout_height="400dp"
+        android:clipToPadding="false"/>
+
+    <!-- Кнопка Новый чат -->
+    <Button
+        android:id="@+id/btnNewChat"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="+ Новый чат"
+        android:layout_marginTop="8dp"
+        android:backgroundTint="#6C5CE7"
+        android:textColor="#FFFFFF"/>
+
+    <!-- Кнопка Очистить всё -->
+    <Button
+        android:id="@+id/btnClearHistory"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Удалить все чаты"
+        android:layout_marginTop="8dp"
+        android:backgroundTint="#FF5252"
+        android:textColor="#FFFFFF"/>
+</LinearLayout>

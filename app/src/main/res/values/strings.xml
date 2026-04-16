@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Законы РФ</string>
+    <string name="app_name">CodeX</string>
     <string name="about">ℹ️ О приложении</string>
     <string name="history">История просмотров</string>
     <string name="laws">Законы</string>

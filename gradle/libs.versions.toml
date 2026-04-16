@@ -10,6 +10,7 @@ constraintlayout = "2.2.1"
 monitor = "1.8.0"
 junitJunit = "4.12"
 swiperefreshlayout = "1.2.0"
+firebaseCrashlytics = "20.0.4"
 
 [libraries]
 junit = { group = "junit", name = "junit", version.ref = "junit" }
@@ -22,6 +23,7 @@ constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayo
 monitor = { group = "androidx.test", name = "monitor", version.ref = "monitor" }
 junit-junit = { group = "junit", name = "junit", version.ref = "junitJunit" }
 swiperefreshlayout = { group = "androidx.swiperefreshlayout", name = "swiperefreshlayout", version.ref = "swiperefreshlayout" }
+firebase-crashlytics = { group = "com.google.firebase", name = "firebase-crashlytics", version.ref = "firebaseCrashlytics" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
