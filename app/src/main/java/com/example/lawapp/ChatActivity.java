@@ -118,7 +118,6 @@
                 sendMessage();
                 return true;
             });
-            throw new RuntimeException("TEST CRASH: CodeX работает отлично, это проверка Crashlytics!");
         }
 
 

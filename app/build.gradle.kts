@@ -1,6 +1,7 @@
 plugins {
     id("com.android.application")
     id ("com.google.gms.google-services")
+    id("com.google.firebase.crashlytics")
 }
 
 
@@ -15,7 +16,6 @@ android     {
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
-
         // Оптимизация: указываем только нужные архитектуры (уменьшает размер APK на 40-60%)
 
     }
